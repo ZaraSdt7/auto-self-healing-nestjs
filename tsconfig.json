@@ -19,6 +19,13 @@
     "noFallthroughCasesInSwitch": false,
     "strict": false,
     "noUncheckedIndexedAccess": false,
-    "useUnknownInCatchVariables": false
+    "useUnknownInCatchVariables": false,
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": ["src/**/*"],
+  "ts-node": {
+    "transpileOnly": true,
+    "files": true
   }
 }

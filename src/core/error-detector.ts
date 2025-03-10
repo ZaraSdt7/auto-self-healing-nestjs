@@ -1,4 +1,4 @@
-import { Logger } from 'winston';
+import { Logger } from 'src/utils/logger';
 
 export class ErrorDetector {
   constructor(private logger: Logger) {}
