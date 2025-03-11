@@ -4,7 +4,7 @@ import { GithubService } from './github.service';
 import { GithubSyncService } from './github-sync.service';
 import { NpmAuditService } from './npm-audit';
 import { EmailNotifier } from './email-notifier';
-import { Logger } from 'src/utils/logger';
+import { Logger } from '../utils/logger';
 
 @Module({
   imports: [ConfigModule],

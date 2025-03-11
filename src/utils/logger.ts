@@ -1,5 +1,4 @@
 import * as winston from 'winston';
-
 export class Logger {
   private logger = winston.createLogger({
     level: 'info',

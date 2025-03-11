@@ -21,15 +21,22 @@
     "strict": false,
     "noUncheckedIndexedAccess": false,
     "useUnknownInCatchVariables": false,
-    "allowJs": true,
-    "checkJs": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
     "paths": {
-      "@/*": ["src/*"],
-    }
+      "src/*": ["src/*"]
+    },
+    "allowJs": true,
+    "checkJs": true
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "jest.config.ts"
+  ],
+  "exclude": ["node_modules", "dist"],
   "ts-node": {
     "transpileOnly": true,
     "files": true
-  },
+  }
 }
