@@ -12,19 +12,19 @@ import { ModuleHealthCheck } from './core/module-health-check';
 import { EmailNotifier } from './integrations/email-notifier';
 import { ErrorPredictor } from './ai/error-predictor';
 import { GithubModule } from './integrations/github.module';
-import { GithubSyncService } from './integrations/github-sync.service';
 import { GithubService } from './integrations/github.service';
 import { QueryOptimizer } from './utils/query-optimizer';
 import { ResourceOptimizer } from './utils/resource-optimizer';
 import { LogAnalyzer } from './ai/log-analyzer';
 import { CodeAnalyzer } from './ai/code-analyzer';
+import { NpmAuditService } from './integrations/npm-audit';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true }),
     ScheduleModule.forRoot(),
     GithubModule,
-    HttpModule, // Added HttpModule
+    HttpModule,
   ],
   providers: [
     Logger,
@@ -39,7 +39,8 @@ import { CodeAnalyzer } from './ai/code-analyzer';
     ResourceOptimizer,
     LogAnalyzer,
     CodeAnalyzer,
-    GithubService, // Added GithubService
+    GithubService,
+    NpmAuditService,
     {
       provide: EmailNotifier,
       useFactory: (logger: Logger, config: ConfigService) =>
@@ -61,8 +62,8 @@ import { CodeAnalyzer } from './ai/code-analyzer';
     LogAnalyzer,
     CodeAnalyzer,
     EmailNotifier,
-    GithubSyncService,
-    GithubService, // Added GithubService to exports
+    GithubService,
+    NpmAuditService,
   ],
 })
 export class AutoSelfHealingModule {}

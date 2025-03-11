@@ -1,83 +1,46 @@
-import { Injectable } from '@nestjs/common';
-import { Logger } from '../utils/logger';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
+import { Logger } from '../utils/logger';
+import { GithubService } from './github.service';
 
 @Injectable()
-export class GithubSyncService {
+export class GithubSyncService implements OnModuleInit {
   constructor(
-    private logger: Logger,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
+    private readonly githubService: GithubService,
+    private readonly logger: Logger,
   ) {}
 
-  async syncGithubCredentials(): Promise<boolean> {
-    this.logger.info('Attempting to sync GitHub credentials from VSCode...');
-
+  async onModuleInit(): Promise<void> {
     try {
-      const isVSCode =
-        process.env.VSCODE_PID || process.env.VSCODE_GIT_IPC_HANDLE;
+      const token = this.configService.get<string>('GITHUB_TOKEN');
+      const owner = this.configService.get<string>('GITHUB_OWNER');
+      const repo = this.configService.get<string>('GITHUB_REPO');
 
-      if (!isVSCode) {
-        this.logger.warn('Not running in VSCode. Skipping auto-sync.');
-        return false;
+      if (!token || !owner || !repo) {
+        this.logger.warn('GitHub configuration missing. Sync skipped.');
+        return;
       }
 
-      const githubToken = await this.getGithubToken();
-      const githubUser = await this.getGitConfig('user.name');
-      const githubRepo = await this.detectCurrentRepo();
-
-      if (githubToken && githubUser && githubRepo) {
-        process.env.GITHUB_TOKEN = githubToken;
-        process.env.GITHUB_OWNER = githubUser;
-        process.env.GITHUB_REPO = githubRepo;
-
-        this.logger.info('GitHub credentials synced successfully');
-        return true;
-      } else {
-        this.logger.warn('Could not fetch all GitHub credentials');
-        return false;
-      }
+      this.logger.info('Starting initial GitHub sync...');
+      await this.syncWithGithub(owner, repo);
+      this.logger.info('Initial GitHub sync completed.');
     } catch (error) {
-      this.logger.error('Failed to sync GitHub credentials', error);
-      return false;
+      this.logger.error(`Failed to sync with GitHub: ${error as Error}`);
     }
   }
 
-  private async getGithubToken(): Promise<string | null> {
-    try {
-      const { stdout } = await execAsync(
-        'echo "protocol=https\nhost=github.com\n\n" | git credential fill',
-      );
-      const lines = stdout.split('\n');
-      const passwordLine = lines.find((line) => line.startsWith('password='));
-      return passwordLine ? passwordLine.replace('password=', '') : null;
-    } catch {
-      this.logger.debug('No GitHub token found in credentials');
-      return null;
+  async syncWithGithub(owner: string, repo: string): Promise<void> {
+    interface RepoData {
+      data: {
+        [key: string]: unknown;
+      };
     }
-  }
 
-  private async getGitConfig(key: string): Promise<string | null> {
-    try {
-      const { stdout } = await execAsync(`git config --get ${key}`);
-      return stdout.trim() || null;
-    } catch {
-      this.logger.debug(`No git config found for ${key}`);
-      return null;
-    }
-  }
-
-  private async detectCurrentRepo(): Promise<string | null> {
-    try {
-      const { stdout } = await execAsync('git config --get remote.origin.url');
-      const match = stdout.match(/github\.com[/:]([^/]+)\/(.+)\.git/);
-      return match ? match[2] : null;
-    } catch {
-      this.logger.debug('No GitHub repo detected');
-      return null;
-    }
+    const repoData = (await this.githubService.getRepo(
+      owner,
+      repo,
+    )) as RepoData;
+    this.logger.info(`Synced repo data: ${JSON.stringify(repoData.data)}`);
   }
 }
