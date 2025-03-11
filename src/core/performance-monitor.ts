@@ -1,57 +1,25 @@
-import { Logger } from 'src/utils/logger';
+import { Injectable } from '@nestjs/common';
+import { Logger } from '../utils/logger';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
+@Injectable()
 export class PerformanceMonitor {
-  private monitoringInterval: NodeJS.Timeout | null = null;
-  private memoryThreshold = 200; // MB
-
-  constructor(private logger: Logger) {}
-
-  startMonitoring(intervalMs = 5000): void {
-    if (this.monitoringInterval) {
-      this.logger.warn('Performance monitoring already started');
-      return;
-    }
-
-    this.monitoringInterval = setInterval(() => {
-      this.checkMemoryUsage();
-    }, intervalMs);
-
+  constructor(private logger: Logger) {
     this.logger.info('Performance monitoring started');
   }
 
-  stopMonitoring(): void {
-    if (!this.monitoringInterval) {
-      return;
-    }
-
-    clearInterval(this.monitoringInterval);
-    this.monitoringInterval = null;
-    this.logger.info('Performance monitoring stopped');
-  }
-
-  setMemoryThreshold(thresholdMB: number): void {
-    this.memoryThreshold = thresholdMB;
-    this.logger.info(`Memory threshold updated: ${thresholdMB}MB`);
-  }
-
-  private checkMemoryUsage(): void {
+  @Cron(CronExpression.EVERY_MINUTE) // هر دقیقه
+  checkPerformance() {
     const memoryUsage = process.memoryUsage();
-    const heapUsedMB = Math.round(memoryUsage.heapUsed / 1024 / 1024);
+    const cpuUsage = process.cpuUsage();
 
-    if (heapUsedMB > this.memoryThreshold) {
-      this.logger.warn(`High memory usage: ${heapUsedMB} MB`);
-      this.optimizeMemory();
+    const memoryMb = memoryUsage.rss / 1024 / 1024;
+    if (memoryMb > 100) {
+      this.logger.warn(`High memory usage detected: ${memoryMb.toFixed(2)} MB`);
     }
-  }
 
-  private optimizeMemory(): void {
-    if (typeof global.gc === 'function') {
-      global.gc();
-      this.logger.info('Memory optimized');
-    } else {
-      this.logger.warn(
-        'Manual garbage collection not available. Start with --expose-gc flag',
-      );
-    }
+    this.logger.debug(
+      `Memory: ${memoryMb.toFixed(2)} MB, CPU: ${cpuUsage.user / 1000}ms user time`,
+    );
   }
 }

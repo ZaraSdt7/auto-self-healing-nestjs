@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["jest", "node"],
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
@@ -21,11 +22,14 @@
     "noUncheckedIndexedAccess": false,
     "useUnknownInCatchVariables": false,
     "allowJs": true,
-    "checkJs": true
+    "checkJs": true,
+    "paths": {
+      "@/*": ["src/*"],
+    }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "test/**/*"],
   "ts-node": {
     "transpileOnly": true,
     "files": true
-  }
+  },
 }

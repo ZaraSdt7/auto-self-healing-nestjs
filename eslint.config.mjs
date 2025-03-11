@@ -1,3 +1,5 @@
+
+
 // @ts-check
 import eslint from '@eslint/js';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
@@ -17,11 +19,13 @@ export default tseslint.config(
         ...globals.node,
         ...globals.jest,
       },
-      ecmaVersion: 5,
+      ecmaVersion: 2022,  // Updated from 5 to 2022 for modern JS features
       sourceType: 'module',
       parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
+        project: ['./tsconfig.json'],  // Explicitly specify the tsconfig file
+        allowDefaultProject: true  // Allow files not in tsconfig to be linted
       },
     },
   },
@@ -32,4 +36,5 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-argument': 'warn'
     },
   },
+  
 );

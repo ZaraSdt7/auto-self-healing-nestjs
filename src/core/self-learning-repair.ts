@@ -1,117 +1,72 @@
-import { RedisClient } from 'src/db/redis-client';
-import { Logger } from 'src/utils/logger';
-import { RepairRecord } from './interface/repair.interface';
+import { Injectable } from '@nestjs/common';
+import { Logger } from '../utils/logger';
+import { LearningData, RepairSuggestion } from './interface/repair.interface';
 
+@Injectable()
 export class SelfLearningRepair {
-  private redis: RedisClient;
+  private repairs: Map<string, LearningData> = new Map();
 
-  constructor(private logger: Logger) {
-    this.redis = new RedisClient(logger);
-  }
+  constructor(private logger: Logger) {}
 
-  async learn(
-    error: string,
-    success: boolean,
-    solution: string = 'self-learning',
-  ): Promise<void> {
-    const confidence = success ? 1 : 0;
-    const record: RepairRecord = {
-      error,
-      solution,
-      timestamp: new Date(),
-      success,
-      confidence,
-    };
+  suggestFix(errorMessage: string): RepairSuggestion | null {
+    const data = this.repairs.get(errorMessage);
+    if (!data) return null;
 
-    const key = this.getKey(error, record.solution);
-    await this.redis.Set(key, { data: JSON.stringify(record) });
-    await this.redis.zAdd('repairs', confidence, error);
-  }
-
-  async getRepairSuggestions(
-    error: string,
-  ): Promise<{ solution: string; confidence: number } | null> {
-    const results = await this.redis.RangeWithScores(
-      `repairs:${error}`,
-      -1,
-      -1,
-    );
-
-    if (!results?.length) return null;
-
-    const topResult = results[0];
-    if (!topResult?.score || topResult.score <= 0) return null;
-
-    const { value, score: confidence } = topResult;
-
+    const total = data.successCount + data.failCount;
+    const confidence = total > 0 ? data.successCount / total : 0;
     this.logger.debug(
-      `Suggested fix for ${error}: ${value} (${confidence * 100}%)`,
+      `Suggested fix for "${errorMessage}": ${data.solution} (confidence: ${confidence})`,
     );
-
-    return { solution: value, confidence };
+    return { solution: data.solution, confidence };
   }
 
-  async updateConfidence(
-    error: string,
+  learn(errorMessage: string, solution: string, success: boolean): void {
+    const data = this.repairs.get(errorMessage) || {
+      solution,
+      successCount: 0,
+      failCount: 0,
+    };
+    if (success) data.successCount++;
+    else data.failCount++;
+
+    this.repairs.set(errorMessage, data);
+    this.logger.info(
+      `Learned fix for "${errorMessage}": ${solution} (success: ${success})`,
+    );
+  }
+
+  updateConfidence(
+    errorMessage: string,
     solution: string,
     success: boolean,
-  ): Promise<void> {
-    const current = await this.getRepairSuggestions(error);
-    const key = this.getKey(error, solution);
-
-    if (!current || current.solution !== solution) {
-      if (success) await this.learn(error, success, solution);
+  ): void {
+    const data = this.repairs.get(errorMessage);
+    if (!data) {
+      this.learn(errorMessage, solution, success);
       return;
     }
 
-    const newConfidence = this.calculateConfidence(current.confidence, success);
-    await this.redis.Set(key, {
-      confidence: newConfidence.toString(),
-      success: success ? '1' : '0',
-    });
-    await this.redis.zAdd(`repairs:${error}`, newConfidence, solution);
-    this.logger.info(
-      `Updated confidence for ${error} -> ${solution}: ${newConfidence}`,
-    );
+    if (success) data.successCount++;
+    else data.failCount++;
+
+    this.repairs.set(errorMessage, data);
   }
 
-  private calculateConfidence(current: number, success: boolean): number {
-    const adjustment = success ? 0.1 : -0.1;
-    return Math.min(Math.max(current + adjustment, 0), 1);
-  }
-
-  async getLearningReport(): Promise<
-    Array<{
-      error: string;
-      bestSolution: string;
-      confidence: number;
-    }>
+  getLearningReport(): Record<
+    string,
+    { solution: string; confidence: number }
   > {
-    const keys = await this.redis.keys('repairs:*');
-    const report: Array<{
-      error: string;
-      bestSolution: string;
-      confidence: number;
-    }> = [];
+    const report: Record<string, { solution: string; confidence: number }> = {};
 
-    for (const key of keys) {
-      const error = key.replace('repairs:', '');
-      const results = await this.redis.RangeWithScores(key, -1, -1);
+    this.repairs.forEach((data, errorMessage) => {
+      const total = data.successCount + data.failCount;
+      const confidence = total > 0 ? data.successCount / total : 0;
+      report[errorMessage] = {
+        solution: data.solution,
+        confidence,
+      };
+    });
 
-      if (results?.length) {
-        report.push({
-          error,
-          bestSolution: results[0].value,
-          confidence: results[0].score,
-        });
-      }
-    }
-
-    this.logger.info('Generated learning report');
     return report;
-  }
-
-  private getKey(error: string, solution: string): string {
-    return `repair:${error}:${solution}`;
   }
 }
