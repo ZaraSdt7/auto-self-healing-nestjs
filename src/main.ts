@@ -4,7 +4,7 @@ import { AutoSelfHealingModule } from './app.module';
 
 async function bootstrap() {
   const logger = new Logger();
-  logger.info('tarting application bootstrap...');
+  logger.info('Starting application bootstrap...');
   const app = await NestFactory.create(AutoSelfHealingModule);
   logger.info('Nest application created.');
   await app.listen(3000);

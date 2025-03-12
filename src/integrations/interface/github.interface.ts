@@ -22,5 +22,16 @@ export interface IssueOptions {
   owner?: string;
   repo?: string;
 }
+export interface RepoData {
+  id: number;
+  name: string;
+  full_name: string;
+  private: boolean;
+  owner: {
+    login: string;
+    id: number;
+  };
+  [key: string]: any;
+}
 
 export type ApiOperation<T> = () => Promise<T>;

@@ -31,16 +31,24 @@ export class GithubSyncService implements OnModuleInit {
   }
 
   async syncWithGithub(owner: string, repo: string): Promise<void> {
-    interface RepoData {
-      data: {
-        [key: string]: unknown;
-      };
-    }
+    try {
+      const repoData = await this.githubService.getRepo(owner, repo);
+      if (!repoData) {
+        this.logger.warn('No repo data received from GitHub');
+        return;
+      }
 
-    const repoData = (await this.githubService.getRepo(
-      owner,
-      repo,
-    )) as RepoData;
-    this.logger.info(`Synced repo data: ${JSON.stringify(repoData.data)}`);
+      // Log important repository information instead of the entire object
+      this.logger.info(
+        `Synced repo: ${repoData.full_name} (ID: ${repoData.id}) - ${
+          repoData.private ? 'Private' : 'Public'
+        } repository owned by ${repoData.owner.login}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Error syncing with GitHub: ${(error as Error).message}`,
+      );
+      throw error;
+    }
   }
 }
