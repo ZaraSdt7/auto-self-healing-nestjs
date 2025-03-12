@@ -62,7 +62,7 @@ import { NpmAuditService } from './integrations/npm-audit';
     LogAnalyzer,
     CodeAnalyzer,
     EmailNotifier,
-    GithubService,
+    GithubModule,
     NpmAuditService,
   ],
 })
