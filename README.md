@@ -131,9 +131,12 @@ export class MyController {
 Run your app and hit http://localhost:3000/status to see it in action!
 
 ## 🔍 What Happens Under the Hood?
-1.On Startup: Initializes AI analyzers, syncs with GitHub, and starts monitoring.
+1.On Startup: Initializes AI analyzers, syncs with GitHub, and starts monitoring.پ
+
 2.Every 5 Minutes: Runs health checks and logs performance metrics.
+
 3.When Issues Arise: Detects errors, predicts potential failures, and applies fixes or rolls back as needed.
+
 4.Check your logs for real-time updates:
 
 ```bash
@@ -170,17 +173,25 @@ npm run test
 ```
 ## 📦 Dependencies
 @nestjs/core, @nestjs/common: Core NestJS framework.
+
 @nestjs/config: Environment variable management.
+
 @nestjs/axios: HTTP requests for GitHub sync.
+
 @nestjs/schedule: Task scheduling.
+
 winston: Powerful logging.
+
 nodemailer: Email notifications.
+
 And more! Check package.json for the full list.
 
 ## 🤝 Contributing
+
 Got ideas? Found a bug? Open an issue or submit a PR—we’d love to hear from you!
 
 ## 👩‍💻 Author
+
 Zahra
 
 **Turning chaos into code, one self-healing app at a time.**
@@ -188,4 +199,5 @@ Zahra
 [GitHub](https://github.com/ZaraSdt7) 
 
 ## 📜 License
+
 This project is currently UNLICENSED. Stay tuned for updates!
