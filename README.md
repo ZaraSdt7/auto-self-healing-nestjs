@@ -41,7 +41,7 @@ Get started in minutes:
    ```bash
    npm install auto-self-healing-nestjs
 
-2. **Add it to your NestJS app:**:
+2. **Add it to your NestJS app:**
 
 ```typescript
 
