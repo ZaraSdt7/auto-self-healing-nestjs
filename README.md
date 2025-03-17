@@ -80,8 +80,11 @@ EMAIL_TO=user-mail@gmail.com
 ```
 
 4. **How to Get a GitHub Token**
+
 1.Go to [GitHub Settings > Developer Settings > Personal Access Tokens.](https://github.com/settings/tokens)
+
 2.Generate a new token with repo scope.
+
 3.Copy it into your .env file.
 
 
