@@ -131,7 +131,8 @@ export class MyController {
 Run your app and hit http://localhost:3000/status to see it in action!
 
 ## 🔍 What Happens Under the Hood?
-1.On Startup: Initializes AI analyzers, syncs with GitHub, and starts monitoring.پ
+
+1.On Startup: Initializes AI analyzers, syncs with GitHub, and starts monitoring.
 
 2.Every 5 Minutes: Runs health checks and logs performance metrics.
 
