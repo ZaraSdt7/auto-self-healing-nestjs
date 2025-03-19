@@ -8,7 +8,7 @@ export class PerformanceMonitor {
     this.logger.info('Performance monitoring started');
   }
 
-  @Cron(CronExpression.EVERY_MINUTE) // evry minutes
+  @Cron(CronExpression.EVERY_MINUTE) // every minutes
   checkPerformance() {
     const memoryUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
